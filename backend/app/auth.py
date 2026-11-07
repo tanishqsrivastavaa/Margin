@@ -3,6 +3,7 @@ from functools import lru_cache
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
 from app.config import Settings, get_settings
@@ -32,6 +33,7 @@ def decode_token(token: str, settings: Settings) -> dict:
             issuer=settings.neon_auth_issuer or None,
             audience=settings.neon_auth_audience or None,
             options={"verify_aud": bool(settings.neon_auth_audience)},
+            leeway=30,
         )
     except jwt.PyJWTError as exc:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token") from exc
@@ -47,8 +49,10 @@ def current_user(
     claims = decode_token(credentials.credentials, settings)
     user = session.get(User, claims["sub"])
     if user is None:
-        user = User(id=claims["sub"], email=claims.get("email"), name=claims.get("name"))
-        session.add(user)
-        session.commit()
-        session.refresh(user)
+        session.add(User(id=claims["sub"], email=claims.get("email"), name=claims.get("name")))
+        try:
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+        user = session.get(User, claims["sub"])
     return user

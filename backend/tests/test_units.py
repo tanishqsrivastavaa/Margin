@@ -38,3 +38,22 @@ def test_fold_system():
         {"role": "user", "content": "Hi"},
     ])
     assert folded == [{"role": "user", "content": "S1\n\nS2\n\n---\n\nHi"}]
+
+
+def test_decode_token_allows_clock_skew(monkeypatch):
+    import time
+    from types import SimpleNamespace
+
+    import jwt
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+    from app import auth
+    from app.config import Settings
+
+    key = Ed25519PrivateKey.generate()
+    now = int(time.time())
+    token = jwt.encode({"sub": "u1", "iat": now + 5, "nbf": now + 5, "exp": now + 900}, key, algorithm="EdDSA")
+    client = SimpleNamespace(get_signing_key_from_jwt=lambda _: SimpleNamespace(key=key.public_key()))
+    monkeypatch.setattr(auth, "jwks_client", lambda _: client)
+    settings = Settings(neon_auth_jwks_url="https://jwks", neon_auth_issuer="", neon_auth_audience="")
+    assert auth.decode_token(token, settings)["sub"] == "u1"

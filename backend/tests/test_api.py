@@ -119,3 +119,29 @@ def test_long_threads_get_summarized(client, llm):
     last = "\n".join(m["content"] for m in llm.thread_calls[-1])
     assert "Earlier in this thread:\nThey settled on sorting first." in last
     assert "turn 0" not in last
+
+
+def test_concurrent_first_requests_share_one_user(client):
+    from fastapi.security import HTTPAuthorizationCredentials
+    from sqlmodel import Session
+
+    from app.auth import current_user
+    from app.config import get_settings
+    from app.db import engine
+    from app.models import User
+
+    with Session(engine) as other:
+        other.add(User(id="dev-race@example.com", email="race@example.com"))
+        other.commit()
+    with Session(engine) as session:
+        real_get = session.get
+        calls = []
+
+        def stale_get(model, key):
+            calls.append(key)
+            return None if len(calls) == 1 else real_get(model, key)
+
+        session.get = stale_get
+        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="dev:race@example.com")
+        user = current_user(creds, session, get_settings())
+    assert user.id == "dev-race@example.com"
