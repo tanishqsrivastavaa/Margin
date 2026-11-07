@@ -16,7 +16,11 @@ type Block = { id: string; text: string; pos: number; size: number; index: numbe
 
 const PAUSE = 2200
 const POINT_END = /[.?!]["')\]]?$/
-const COMMAND = /(^|\s)\/(more|answer)\s*$/
+const COMMAND = /\s*\/(more|answer)[.!?\s]*$/i
+const partial = (text: string) => {
+  const m = text.match(/\/([a-z]*)$/i)
+  return !!m && ['more', 'answer'].some((c) => c !== m[1].toLowerCase() && c.startsWith(m[1].toLowerCase()))
+}
 const MORE = 'Give me a bigger hint.'
 const ANSWER = 'Give me the full answer.'
 const REVISED = 'I revised this point: '
@@ -323,7 +327,7 @@ export default function Writing({ id }: { id: string }) {
   async function handle(b: Block, prev: string) {
     const t = threads.get(b.id)
     if (COMMAND.test(b.text)) {
-      const kind = b.text.match(COMMAND)![2] as 'more' | 'answer'
+      const kind = b.text.match(COMMAND)![1].toLowerCase() as 'more' | 'answer'
       await stripCommand(b.id)
       await save()
       if (t) await command(t, kind)
@@ -343,7 +347,7 @@ export default function Writing({ id }: { id: string }) {
     await save()
     for (const b of blocksOf(editor)) {
       const prev = seen.get(b.id) ?? ''
-      if (prev === b.text || threads.get(b.id)?.busy) continue
+      if (prev === b.text || threads.get(b.id)?.busy || partial(b.text)) continue
       seen.set(b.id, b.text)
       handle(b, prev)
     }
