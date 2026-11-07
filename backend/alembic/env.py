@@ -8,7 +8,8 @@ target_metadata = SQLModel.metadata
 
 
 def run() -> None:
-    url = get_settings().database_url
+    settings = get_settings()
+    url = settings.database_url_unpooled or settings.database_url
     if context.is_offline_mode():
         context.configure(url=url, target_metadata=target_metadata, literal_binds=True)
         with context.begin_transaction():

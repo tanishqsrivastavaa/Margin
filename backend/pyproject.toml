@@ -12,6 +12,8 @@ dependencies = [
     "openai>=1.50",
     "pyjwt[crypto]>=2.9",
     "pydantic-settings>=2.4",
+    "boto3>=1.43.126",
+    "python-multipart>=0.0.33",
 ]
 
 [dependency-groups]
