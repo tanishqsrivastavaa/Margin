@@ -1,0 +1,25 @@
+[project]
+name = "margin-backend"
+version = "0.1.0"
+description = "API server for Margin, a writing space where an agent thinks with you, not for you."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "sqlmodel>=0.0.22",
+    "alembic>=1.13",
+    "psycopg[binary]>=3.2",
+    "openai>=1.50",
+    "pyjwt[crypto]>=2.9",
+    "pydantic-settings>=2.4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "httpx>=0.27",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
