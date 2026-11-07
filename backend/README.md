@@ -1,6 +1,6 @@
 # Margin backend
 
-FastAPI + SQLModel on Neon Postgres. Neon Auth handles sign-in; this server verifies the session JWT on every request. GPT OSS 120B on Groq detects points and writes one-line summaries. Gemma on OpenRouter is the thinking partner in each thread.
+FastAPI + SQLModel on Neon Postgres. Neon Auth handles sign-in; this server verifies the session JWT on every request. GPT OSS 120B on Groq detects points and writes one-line summaries. Nemotron 3 Ultra (free) on OpenRouter is the thinking partner in each thread.
 
 ## Run locally
 

@@ -20,8 +20,8 @@ class Settings(BaseSettings):
 
     openrouter_api_key: str = ""
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    thread_model: str = "google/gemma-4-26b-a4b-it:free"
-    thread_model_system_as_user: bool = True
+    thread_model: str = "nvidia/nemotron-3-ultra-550b-a55b:free"
+    thread_model_system_as_user: bool = False
 
     thread_keep_recent: int = 8
     thread_summarize_after: int = 12
